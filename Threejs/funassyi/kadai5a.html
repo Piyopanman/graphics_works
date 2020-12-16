@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>kadai5a</title>
+    <script type="text/javascript" src="../libs/three.js"></script>
+
+    <script type="text/javascript" src="../libs/stats.js"></script>
+    <script type="text/javascript" src="../libs/dat.gui.js"></script>
+    <style>
+        body {
+            /* set margin to 0 and overflow to hidden, to go fullscreen */
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div id="Stats-output">
+</div>
+<!-- Div which will hold the Output -->
+<div id="WebGL-output">
+</div>
+
+<!-- Javascript code that runs our Three.js examples -->
+<script type="text/javascript">
+
+    // once everything is loaded, we run our Three.js stuff.
+    function init() {
+
+        var stats = initStats();
+
+        // create a scene, that will hold all our elements such as objects, cameras and lights.
+        var scene = new THREE.Scene();
+
+        // create a camera, which defines where we're looking at.
+        var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        // create a render and set the size
+        var webGLRenderer = new THREE.WebGLRenderer();
+        webGLRenderer.setClearColor(new THREE.Color(0xEEEEEE, 1.0));
+        webGLRenderer.setSize(window.innerWidth, window.innerHeight);
+        webGLRenderer.shadowMapEnabled = true;
+
+        var shape = createMesh(new THREE.ShapeGeometry(drawShape()));
+        // add the sphere to the scene
+        scene.add(shape);
+
+
+
+        // position and point the camera to the center of the scene
+        camera.position.x = -30;
+        camera.position.y = 70;
+        camera.position.z = 70;
+        camera.lookAt(new THREE.Vector3(10, 0, 0));
+
+
+        // add spotlight for the shadows
+        var spotLight = new THREE.SpotLight(0xffffff);
+        spotLight.position.set(-40, 60, -10);
+        scene.add(spotLight);
+
+        // add the output of the renderer to the html element
+        document.getElementById("WebGL-output").appendChild(webGLRenderer.domElement);
+
+        // call the render function
+        var step = 0;
+
+
+        // setup the control gui
+        var controls = new function () {
+
+            this.asGeom = function () {
+                // remove the old plane
+                scene.remove(shape);
+                // create a new one
+                shape = createMesh(new THREE.ShapeGeometry(drawShape()));
+                // add it to the scene.
+                scene.add(shape);
+            };
+
+            this.asPoints = function () {
+                // remove the old plane
+                scene.remove(shape);
+                // create a new one
+                shape = createLine(drawShape(), false);
+                // add it to the scene.
+                scene.add(shape);
+            };
+
+            this.asSpacedPoints = function () {
+                // remove the old plane
+                scene.remove(shape);
+                // create a new one
+                shape = createLine(drawShape(), true);
+                // add it to the scene.
+                scene.add(shape);
+            };
+        };
+
+        var gui = new dat.GUI();
+        gui.add(controls, 'asGeom');
+        gui.add(controls, 'asPoints');
+        gui.add(controls, 'asSpacedPoints');
+
+
+        render();
+
+        function drawShape() {   /////////////////////////ここから//////////////////////
+
+          var shape = new THREE.Shape();
+          shape.moveTo(10,-5);
+          shape.lineTo(15,-5);
+          shape.bezierCurveTo(15, 5, 20, 5, 20, -5);  //足の窪み
+          shape.lineTo(25,-5);  //右足
+          shape.splineThru(
+                  [new THREE.Vector2(27, 15)
+                  ]);
+          shape.bezierCurveTo(35, 20, 31, 30, 27, 22);  //右手
+          shape.splineThru(
+                  [new THREE.Vector2(26, 30),
+                   new THREE.Vector2(24, 35)
+                  ]);
+         shape.lineTo(26,39);
+         shape.splineThru(
+                 [new THREE.Vector2(28, 37),
+                  new THREE.Vector2(31, 40),
+                  new THREE.Vector2(28, 42),
+                  new THREE.Vector2(26, 40),
+                  new THREE.Vector2(25.5, 44),
+                  new THREE.Vector2(24, 46),
+                   new THREE.Vector2(23, 46),
+                   new THREE.Vector2(23, 41),
+                   new THREE.Vector2(25, 39)
+                 ]);
+        shape.lineTo(23,35);
+        shape.splineThru(
+                [new THREE.Vector2(17.5, 36),
+                 new THREE.Vector2(12, 32),
+                 new THREE.Vector2(9, 22)
+                ]);
+        shape.bezierCurveTo(3, 30, 2, 22, 9, 15);  //左手
+
+
+        var hole1 = new THREE.Path();
+        hole1.absellipse(15, 28, 1.2, 2.2, 0, Math.PI * 2, true);  //左目
+        shape.holes.push(hole1);
+
+        var hole2 = new THREE.Path();
+        hole2.absellipse(22, 28, 1.2, 2.2, 0, Math.PI * 2, true);  //右目
+        shape.holes.push(hole2);
+
+        var hole3 = new THREE.Path();
+        hole3.moveTo(18,23);
+        hole3.arc(0, 0, 1.7, Math.PI , Math.PI*2, true);  //口
+        shape.holes.push(hole3);
+
+        var hole4 = new THREE.Path();
+        hole4.absellipse(13, 24.5, 0.4, 0.4, 0, Math.PI * 2, true);  //左ほっぺ
+        shape.holes.push(hole4);
+
+        var hole5 = new THREE.Path();
+        hole5.absellipse(15, 24.5, 0.4, 0.4, 0, Math.PI * 2, true);  //左ほっぺ
+        shape.holes.push(hole5);
+
+        var hole6 = new THREE.Path();
+        hole6.absellipse(24, 24.5, 0.4, 0.4, 0, Math.PI * 2, true);  //右ほっぺ
+        shape.holes.push(hole6);
+
+        var hole7 = new THREE.Path();
+        hole7.absellipse(22, 24.5, 0.4, 0.4, 0, Math.PI * 2, true);  //右ほっぺ
+        shape.holes.push(hole7);
+
+        var hole9 = new THREE.Path();
+        hole9.moveTo(17.5,15);
+        hole9.lineTo(14,17);
+        hole9.lineTo(14,13);
+        hole9.lineTo(17.5,15);
+        shape.holes.push(hole9);
+
+
+        var hole8 = new THREE.Path();
+        hole8.moveTo(17.6,14.8);
+        hole8.lineTo(21,17);
+        hole8.lineTo(21,13);
+        hole8.lineTo(17.5,15);
+        shape.holes.push(hole8);
+        // return the shape
+        return shape;
+        
+        }
+
+
+        function createMesh(geom) {
+
+            // assign two materials
+            var meshMaterial = new THREE.MeshNormalMaterial();
+            meshMaterial.side = THREE.DoubleSide;
+            var wireFrameMat = new THREE.MeshBasicMaterial();
+            wireFrameMat.wireframe = true;
+
+            // create a multimaterial
+            var mesh = THREE.SceneUtils.createMultiMaterialObject(geom, [meshMaterial, wireFrameMat]);
+
+            return mesh;
+        }
+
+        function createLine(shape, spaced) {
+            console.log(shape);
+            if (!spaced) {
+                var mesh = new THREE.Line(shape.createPointsGeometry(10), new THREE.LineBasicMaterial({
+                    color: 0xff3333,
+                    linewidth: 2
+                }));
+                return mesh;
+            } else {
+                var mesh = new THREE.Line(shape.createSpacedPointsGeometry(3), new THREE.LineBasicMaterial({
+                    color: 0xff3333,
+                    linewidth: 2
+                }));
+                return mesh;
+            }
+
+        }
+
+        function render() {
+            stats.update();
+
+            shape.rotation.y = step += 0.01;
+
+            // render using requestAnimationFrame
+            requestAnimationFrame(render);
+            webGLRenderer.render(scene, camera);
+        }
+
+        function initStats() {
+
+            var stats = new Stats();
+            stats.setMode(0); // 0: fps, 1: ms
+
+            // Align top-left
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.left = '0px';
+            stats.domElement.style.top = '0px';
+
+            document.getElementById("Stats-output").appendChild(stats.domElement);
+
+            return stats;
+        }
+    }
+    window.onload = init;
+</script>
+</body>
+</html>

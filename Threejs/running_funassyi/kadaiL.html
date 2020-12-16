@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title> kadaiL </title>
+    <script type="text/javascript" src="../libs/three.js"></script>
+
+    <script type="text/javascript" src="../libs/stats.js"></script>
+    <script type="text/javascript" src="../libs/dat.gui.js"></script>
+
+    <script type="text/javascript" src="../libs/FirstPersonControls.js"></script>
+
+    <style>
+        body {
+            /* set margin to 0 and overflow to hidden, to go fullscreen */
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div id="Stats-output">
+</div>
+<!-- Div which will hold the Output -->
+<div id="WebGL-output">
+</div>
+
+<!-- Javascript code that runs our Three.js examples -->
+<script type="text/javascript">
+
+    // once everything is loaded, we run our Three.js stuff.
+    function init() {
+
+        var stats = initStats();
+        var clock = new THREE.Clock();
+
+
+        // create a scene, that will hold all our elements such as objects, cameras and lights.
+        var scene = new THREE.Scene();
+
+        // create a camera, which defines where we're looking at.
+        var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        // position and point the camera to the center of the scene
+        camera.position.x = -250;
+        camera.position.y = 0;
+        camera.position.z = 0;
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+        var camControls = new THREE.FirstPersonControls(camera);
+        camControls.lookSpeed = 0.4;
+        camControls.movementSpeed = 20;
+        camControls.noFly = true;
+        camControls.lookVertical = true;
+        camControls.constrainVertical = true;
+        camControls.verticalMin = 1.0;
+        camControls.verticalMax = 2.0;
+        camControls.lon = -150;
+        camControls.lat = 120;
+
+
+        // create a render and set the size
+        var webGLRenderer = new THREE.WebGLRenderer();
+        webGLRenderer.setClearColor(new THREE.Color(0xEEEEEE, 1.0));
+        webGLRenderer.setSize(window.innerWidth, window.innerHeight);
+        webGLRenderer.shadowMapEnabled = true;
+
+        var options = {
+          amount:1,
+          bevelThickness:5,
+          bevelSize : 0.5,
+          bevelEnabled : true,
+          bevelSegments : 3,
+          bevelEnabled : true,
+          curveSegments : 12,
+          steps : 1
+        };
+
+        //var shape = createMesh2(new THREE.ShapeGeometry(drawShape()));
+        var shape = createMesh2(new THREE.ExtrudeGeometry(drawShape(), options),"cg2_L_texture.png");
+        shape.position.x=-15;
+        shape.position.y=-1;
+        shape.position.z=280;
+        shape.castShadow = true;
+
+        scene.add(shape);
+
+
+        var sphere1 = createMesh(new THREE.SphereGeometry(6,20,20), "cg2_L_nashi.png");
+        sphere1.position.x = 20;
+        sphere1.position.z = -150;
+        scene.add(sphere1);
+
+
+
+        var floorTex = THREE.ImageUtils.loadTexture("cg2_L_floor2.png");
+
+        var plane = new THREE.Mesh(new THREE.BoxGeometry(100, 500, 0.1, 30), new THREE.MeshPhongMaterial({
+            color: 0x3c3c3c,
+            map: floorTex
+        }));
+        plane.position.y = -7.5;
+        plane.rotation.x = -0.5 * Math.PI;
+        plane.receiveShadow = true;
+        scene.add(plane);
+
+        // position and point the camera to the center of the scene
+        camera.position.x = 0;
+        camera.position.y = 30;
+        camera.position.z = 350;
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+        //var ambiLight = new THREE.AmbientLight(0x242424);
+        var ambiLight = new THREE.AmbientLight(0xcccccc);
+        scene.add(ambiLight);
+
+
+        var light = new THREE.SpotLight();
+        light.position.set(0,300,0);
+        light.lookAt(plane);
+        scene.add(light);
+
+
+        // add the output of the renderer to the html element
+        document.getElementById("WebGL-output").appendChild(webGLRenderer.domElement);
+
+        // call the render function
+        var step = 0;
+
+//        var polyhedron = createMesh(new THREE.PolyhedronGeometry(vertices, faces, controls.radius, controls.detail));
+
+        // setup the control gui
+        var controls = new function () {
+
+          this.numberOfObjects = scene.children.length;
+          this.addFunassy = function () {
+            var shape2 = createMesh2(new THREE.ExtrudeGeometry(drawShape2(), options),"cg2_L_nashi.png");
+              shape2.name = "shape2-" + scene.children.length;
+
+
+              // position the cube randomly in the scene
+
+              shape2.position.x = -50 + (Math.random() * 70);
+              shape2.position.y = 2;
+              shape2.position.z = -150 + (Math.random() * 400);
+
+              // add the cube to the scene
+              scene.add(shape2);
+          };
+
+
+        };
+
+
+
+        var gui = new dat.GUI();
+        gui.add(controls, 'addFunassy');
+
+
+        function drawShape() {
+
+          var shape = new THREE.Shape();
+          shape.moveTo(10,-5);
+          shape.lineTo(15,-5);
+          shape.bezierCurveTo(15, 5, 20, 5, 20, -5);  //足の窪み
+          shape.lineTo(25,-5);  //右足
+          shape.splineThru(
+                  [new THREE.Vector2(27, 15)
+                  ]);
+          shape.bezierCurveTo(35, 20, 31, 30, 27, 22);  //右手
+          shape.splineThru(
+                  [new THREE.Vector2(26, 30),
+                   new THREE.Vector2(24, 35)
+                  ]);
+         shape.lineTo(26,39);
+         shape.splineThru(
+                 [new THREE.Vector2(28, 37),
+                  new THREE.Vector2(31, 40),
+                  new THREE.Vector2(28, 42),
+                  new THREE.Vector2(26, 40),
+                  new THREE.Vector2(25.5, 44),
+                  new THREE.Vector2(24, 46),
+                   new THREE.Vector2(23, 46),
+                   new THREE.Vector2(23, 41),
+                   new THREE.Vector2(25, 39)
+                 ]);
+        shape.lineTo(23,35);
+        shape.splineThru(
+                [new THREE.Vector2(17.5, 36),
+                 new THREE.Vector2(12, 32),
+                 new THREE.Vector2(9, 22)
+                ]);
+        shape.bezierCurveTo(3, 30, 2, 22, 9, 15);  //左手
+
+
+        var hole1 = new THREE.Path();
+        hole1.absellipse(15, 28, 1.2, 2.2, 0, Math.PI * 2, true);  //左目
+        shape.holes.push(hole1);
+
+        var hole2 = new THREE.Path();
+        hole2.absellipse(22, 28, 1.2, 2.2, 0, Math.PI * 2, true);  //右目
+        shape.holes.push(hole2);
+
+        var hole3 = new THREE.Path();
+        hole3.moveTo(18,23);
+        hole3.arc(0, 0, 1.7, Math.PI , Math.PI*2, true);  //口
+        shape.holes.push(hole3);
+
+        var hole4 = new THREE.Path();
+        hole4.absellipse(13, 24.5, 0.4, 0.4, 0, Math.PI * 2, true);  //左ほっぺ
+        shape.holes.push(hole4);
+
+        var hole5 = new THREE.Path();
+        hole5.absellipse(15, 24.5, 0.4, 0.4, 0, Math.PI * 2, true);  //左ほっぺ
+        shape.holes.push(hole5);
+
+        var hole6 = new THREE.Path();
+        hole6.absellipse(24, 24.5, 0.4, 0.4, 0, Math.PI * 2, true);  //右ほっぺ
+        shape.holes.push(hole6);
+
+        var hole7 = new THREE.Path();
+        hole7.absellipse(22, 24.5, 0.4, 0.4, 0, Math.PI * 2, true);  //右ほっぺ
+        shape.holes.push(hole7);
+
+        var hole9 = new THREE.Path();
+        hole9.moveTo(17.5,15);
+        hole9.lineTo(14,17);
+        hole9.lineTo(14,13);
+        hole9.lineTo(17.5,15);
+        shape.holes.push(hole9);
+
+
+        var hole8 = new THREE.Path();
+        hole8.moveTo(17.6,14.8);
+        hole8.lineTo(21,17);
+        hole8.lineTo(21,13);
+        hole8.lineTo(17.5,15);
+        shape.holes.push(hole8);
+        return shape;
+
+        }
+
+        function drawShape2() {
+
+          var r = 0.5; //*r
+
+          var shape = new THREE.Shape();
+          shape.moveTo(10*r,-5*r);
+          shape.lineTo(15*r,-5*r);
+          shape.bezierCurveTo(15*r, 5*r, 20*r, 5*r, 20*r, -5*r);  //足の窪み
+          shape.lineTo(25*r,-5*r);  //右足
+          shape.splineThru(
+                  [new THREE.Vector2(27*r, 15*r)
+                  ]);
+          shape.bezierCurveTo(35*r, 20*r, 31*r, 30*r, 27*r, 22*r);  //右手
+          shape.splineThru(
+                  [new THREE.Vector2(26*r, 30*r),
+                   new THREE.Vector2(24*r, 35*r)
+                  ]);
+         shape.lineTo(26*r,39*r);
+         shape.splineThru(
+                 [new THREE.Vector2(28*r, 37*r),
+                  new THREE.Vector2(31*r, 40*r),
+                  new THREE.Vector2(28*r, 42*r),
+                  new THREE.Vector2(26*r, 40*r),
+                  new THREE.Vector2(25.5*r, 44*r),
+                  new THREE.Vector2(24*r, 46*r),
+                   new THREE.Vector2(23*r, 46*r),
+                   new THREE.Vector2(23*r, 41*r),
+                   new THREE.Vector2(25*r, 39*r)
+                 ]);
+        shape.lineTo(23*r,35*r);
+        shape.splineThru(
+                [new THREE.Vector2(17.5*r, 36*r),
+                 new THREE.Vector2(12*r, 32*r),
+                 new THREE.Vector2(9*r, 22*r)
+                ]);
+        shape.bezierCurveTo(3*r, 30*r, 2*r, 22*r, 9*r, 15*r);  //左手
+
+
+        var hole1 = new THREE.Path();
+        hole1.absellipse(15*r, 28*r, 1.2*r, 2.2*r, 0, Math.PI * 2, true);  //左目
+        shape.holes.push(hole1);
+
+        var hole2 = new THREE.Path();
+        hole2.absellipse(22*r, 28*r, 1.2*r, 2.2*r, 0, Math.PI * 2, true);  //右目
+        shape.holes.push(hole2);
+
+        var hole3 = new THREE.Path();
+        hole3.moveTo(18*r,23*r);
+        hole3.arc(0, 0, 1.7*r, Math.PI , Math.PI*2, true);  //口
+        shape.holes.push(hole3);
+
+        var hole4 = new THREE.Path();
+        hole4.absellipse(13*r, 24.5*r, 0.4*r, 0.4, 0, Math.PI * 2, true);  //左ほっぺ
+        shape.holes.push(hole4);
+
+        var hole5 = new THREE.Path();
+        hole5.absellipse(15*r, 24.5*r, 0.4*r, 0.4*r, 0, Math.PI * 2, true);  //左ほっぺ
+        shape.holes.push(hole5);
+
+        var hole6 = new THREE.Path();
+        hole6.absellipse(24*r, 24.5*r, 0.4*r, 0.4*r, 0, Math.PI * 2, true);  //右ほっぺ
+        shape.holes.push(hole6);
+
+        var hole7 = new THREE.Path();
+        hole7.absellipse(22*r, 24.5*r, 0.4*r, 0.4*r, 0, Math.PI * 2, true);  //右ほっぺ
+        shape.holes.push(hole7);
+
+        var hole9 = new THREE.Path();
+        hole9.moveTo(17.5*r,15*r);
+        hole9.lineTo(14*r,17*r);
+        hole9.lineTo(14*r,13*r);
+        hole9.lineTo(17.5*r,15*r);
+        shape.holes.push(hole9);
+
+
+        var hole8 = new THREE.Path();
+        hole8.moveTo(17.6*r,14.8*r);
+        hole8.lineTo(21*r,17*r);
+        hole8.lineTo(21*r,13*r);
+        hole8.lineTo(17.5*r,15*r);
+        shape.holes.push(hole8);
+        return shape;
+
+        }
+
+
+        function createMesh2(geom,imageFile) {
+
+          var texture = THREE.ImageUtils.loadTexture("./" + imageFile);
+
+          texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+          texture.offset.set( 0, 1 );
+          texture.repeat.set( 0.08, 0.08 );
+
+          var mat = new THREE.MeshPhongMaterial();
+          mat.map = texture;
+          var mesh = new THREE.Mesh(geom, mat);
+          return mesh;
+        }
+
+
+        function createMesh(geom, imageFile) {
+            var texture = THREE.ImageUtils.loadTexture("./" + imageFile);
+            geom.computeVertexNormals();
+            var mat = new THREE.MeshPhongMaterial();
+            mat.map = texture;
+
+
+
+            // create a multimaterial
+            var mesh = new THREE.Mesh(geom, mat);
+
+            return mesh;
+        }
+
+          render();
+
+        function render() {
+            stats.update();
+
+
+            step += 0.05;
+            var speed = 0.3;
+
+            shape.position.y = 2 + ( 15 * Math.abs(Math.sin(step)));
+            if(shape.position.z >= sphere1.position.z){
+            shape.position.z -= speed;
+           }else{
+             shape.position.z = sphere1.position.z;
+          }
+
+
+            // render using requestAnimationFrame
+            var delta = clock.getDelta();   //( ^ω^ )( ^ω^ )( ^ω^ )( ^ω^ )( ^ω^ )( ^ω^ )( ^ω^ )( ^ω^ )( ^ω^ )( ^ω^ )( ^ω^ )( ^ω^ )このコメントアウト外したら一人称カメラになる
+            camControls.update(delta);
+
+            requestAnimationFrame(render);
+            webGLRenderer.render(scene, camera);
+        }
+
+        function initStats() {
+
+            var stats = new Stats();
+            stats.setMode(0); // 0: fps, 1: ms
+
+
+
+            // Align top-left
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.left = '0px';
+            stats.domElement.style.top = '0px';
+
+            document.getElementById("Stats-output").appendChild(stats.domElement);
+
+            return stats;
+        }
+    }
+    window.onload = init;
+</script>
+</body>
+</html>
